@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% block title %}Issued Books{% endblock %}{% block page_title %}Issued Books{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a href="?status=active" class="btn btn-sm {% if status=='active' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Active</a>
+  <a href="?status=overdue" class="btn btn-sm {% if status=='overdue' %}btn-danger{% else %}btn-outline-danger{% endif %}">Overdue</a>
+  <a href="?status=returned" class="btn btn-sm {% if status=='returned' %}btn-success{% else %}btn-outline-success{% endif %}">Returned</a>
+  <a href="?status=all" class="btn btn-sm {% if status=='all' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">All</a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Student</th><th>Book</th><th>Issue Date</th><th>Due Date</th><th>Status</th><th>Fine</th></tr></thead>
+      <tbody>
+      {% for r in issued.items %}
+      <tr>
+            <td><a href="{{ url_for('student_profile', student_id=r.student.id) }}">{{ r.student.full_name }}</a></td>
+        <td>{{ r.book.title }}</td>
+        <td>{{ r.issue_date.strftime('%d %b %Y') }}</td>
+        <td>{{ r.due_date.strftime('%d %b %Y') }}</td>
+        <td>
+          {% if r.is_returned %}<span class="badge bg-success">Returned</span>
+          {% elif r.is_overdue %}<span class="badge bg-danger">Overdue ({{ r.days_overdue }}d)</span>
+          {% else %}<span class="badge bg-warning text-dark">Active</span>{% endif %}
+        </td>
+        <td>{% if r.fine_amount > 0 %}<span class="text-danger">PKR {{ r.fine_amount }}</span>{% else %}—{% endif %}</td>
+      </tr>
+      {% else %}<tr><td colspan="6" class="text-center text-muted py-4">No records found.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if issued.pages > 1 %}
+  <div class="card-footer d-flex justify-content-center">
+    <nav><ul class="pagination pagination-sm mb-0">
+      {% for p in issued.iter_pages() %}
+        {% if p %}<li class="page-item {% if p==issued.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&status={{ status }}">{{ p }}</a></li>
+        {% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+      {% endfor %}
+    </ul></nav>
+  </div>{% endif %}
+</div>
+{% endblock %}

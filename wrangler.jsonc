@@ -1,0 +1,24 @@
+{
+  "name": "library-os",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-01",
+
+  "containers": [
+    {
+      "class_name": "LibraryContainer",
+      // Points at your existing Dockerfile — nothing inside app/ is touched.
+      "image": "./app/Dockerfile",
+      "max_instances": 1
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      { "class_name": "LibraryContainer", "name": "LIBRARY_CONTAINER" }
+    ]
+  },
+
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["LibraryContainer"] }
+  ]
+}

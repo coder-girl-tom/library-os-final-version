@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Books - LibrarySystem PRO{% endblock %}
+{% block page_title %}Books{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex gap-2 flex-wrap">
+    <form method="GET" class="d-flex gap-2 flex-wrap">
+      <div class="live-search-box">
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search books..." value="{{ search }}" id="bookSearch" autocomplete="off" style="width:220px">
+        <div class="live-search-results" id="bookSearchResults"></div>
+      </div>
+      <select name="category" class="form-select form-select-sm" style="width:150px">
+        <option value="">All Categories</option>
+        {% for c in categories %}<option value="{{ c[0] }}" {% if c[0]==category %}selected{% endif %}>{{ c[0] }}</option>{% endfor %}
+      </select>
+      <select name="stock" class="form-select form-select-sm" style="width:140px">
+        <option value="">All Stock</option>
+        <option value="low" {% if stock_filter=='low' %}selected{% endif %}>Low Stock</option>
+        <option value="out" {% if stock_filter=='out' %}selected{% endif %}>Out of Stock</option>
+      </select>
+      <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+      {% if search or category or stock_filter %}<a href="{{ url_for('books_list') }}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+    </form>
+  </div>
+  <a href="{{ url_for('add_book') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Book</a>
+</div>
+
+{% if stock_filter == 'low' %}
+<div class="alert-low-stock p-2 px-3 mb-3 rounded-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>Showing books with {{ LOW_STOCK_THRESHOLD }} or fewer copies available.</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>#</th><th>Title</th><th>Author</th><th>Category</th><th>Total</th><th>Available</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for book in books.items %}
+      <tr>
+        <td class="text-muted small">{{ loop.index }}</td>
+        <td>
+          <strong>{{ book.title }}</strong>
+          {% if book.available_copies == 0 %}<span class="badge-out-of-stock ms-1">Out of Stock</span>
+          {% elif book.is_low_stock %}<span class="badge-low-stock ms-1">Low Stock</span>{% endif %}
+        </td>
+        <td>{{ book.author }}</td>
+        <td><span class="badge bg-light text-dark border">{{ book.category or '—' }}</span></td>
+        <td>{{ book.quantity }}</td>
+        <td>
+          <strong {% if book.available_copies == 0 %}class="text-danger"{% elif book.is_low_stock %}class="text-warning"{% else %}class="text-success"{% endif %}>{{ book.available_copies }}</strong>
+        </td>
+        <td>
+          <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-sm btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a>
+          {% if session.role == 'ADMIN' %}
+          <form method="POST" action="{{ url_for('delete_book', book_id=book.id) }}" class="d-inline" onsubmit="return confirm('Delete this book?')">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>{% endif %}
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="7" class="text-center text-muted py-4">No books found.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if books.pages > 1 %}
+  <div class="card-footer d-flex justify-content-center">
+    <nav><ul class="pagination pagination-sm mb-0">
+      {% for p in books.iter_pages() %}
+        {% if p %}<li class="page-item {% if p==books.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&search={{ search }}&category={{ category }}&stock={{ stock_filter }}">{{ p }}</a></li>
+        {% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+      {% endfor %}
+    </ul></nav>
+  </div>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const bookSearch = document.getElementById('bookSearch');
+const bookResults = document.getElementById('bookSearchResults');
+let t;
+if (bookSearch) {
+  bookSearch.addEventListener('input', () => {
+    clearTimeout(t);
+    const q = bookSearch.value.trim();
+    if (q.length < 2) { bookResults.classList.remove('show'); return; }
+    t = setTimeout(async () => {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&kind=books`);
+      const data = await res.json();
+      let html = '';
+      data.books.forEach(b => {
+        const badge = b.out_of_stock ? '<span class="badge-out-of-stock ms-1">Out</span>' : b.low_stock ? '<span class="badge-low-stock ms-1">Low</span>' : '';
+        html += `<div class="search-result-item" onclick="document.querySelector('[name=search]').value='${b.title.replace(/'/g,"\\'")}';document.querySelector('form').submit()">
+          <i class="bi bi-book text-primary"></i><div>${b.title} ${badge}<br><small class="text-muted">${b.author} · ${b.available} available</small></div></div>`;
+      });
+      if (!html) html = '<div class="search-result-item text-muted">No books found</div>';
+      bookResults.innerHTML = html;
+      bookResults.classList.add('show');
+    }, 250);
+  });
+  document.addEventListener('click', e => { if (!bookSearch.contains(e.target)) bookResults.classList.remove('show'); });
+}
+</script>
+{% endblock %}

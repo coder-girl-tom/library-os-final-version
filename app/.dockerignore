@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.DS_Store
+instance/
+build/
+localpycs/
+.pytest_cache/
+*.log
+venv/
+*** End Patch

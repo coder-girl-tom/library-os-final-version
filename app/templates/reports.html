@@ -1,0 +1,84 @@
+{% extends "base.html" %}{% block title %}Reports{% endblock %}{% block page_title %}Reports{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card stat-card" style="background:linear-gradient(135deg,#4f8ef7,#6aa3ff);color:#fff"><div class="stat-icon"><i class="bi bi-book"></i></div><div class="stat-val mt-1">{{ total_books }}</div><div class="stat-label">Total Books</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat-card" style="background:linear-gradient(135deg,#10b981,#34d399);color:#fff"><div class="stat-icon"><i class="bi bi-people"></i></div><div class="stat-val mt-1">{{ total_students }}</div><div class="stat-label">Students</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat-card" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#fff"><div class="stat-icon"><i class="bi bi-journal-check"></i></div><div class="stat-val mt-1">{{ total_issued }}</div><div class="stat-label">Currently Issued</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat-card" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);color:#fff"><div class="stat-icon"><i class="bi bi-check-circle"></i></div><div class="stat-val mt-1">{{ total_returned }}</div><div class="stat-label">Total Returned</div></div></div>
+</div>
+
+{% if low_stock_books %}
+<div class="card mb-3">
+  <div class="card-header text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Low Stock Alerts (≤ {{ LOW_STOCK_THRESHOLD }} copies)</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Book</th><th>Author</th><th>Total Copies</th><th>Available</th></tr></thead>
+      <tbody>
+      {% for b in low_stock_books %}
+      <tr>
+        <td>{{ b.title }}</td><td>{{ b.author }}</td><td>{{ b.quantity }}</td>
+        <td>{% if b.available_copies==0 %}<span class="badge-out-of-stock">0 – Out of Stock</span>{% else %}<span class="badge-low-stock">{{ b.available_copies }}</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Top Borrowers</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>#</th><th>Student</th><th>Books Borrowed</th></tr></thead>
+          <tbody>
+          {% for student, count in top_borrowers %}
+          <tr><td>{{ loop.index }}</td><td><a href="{{ url_for('student_profile', student_id=student.id) }}">{{ student.full_name }}</a></td><td><strong>{{ count }}</strong></td></tr>
+          {% else %}<tr><td colspan="3" class="text-center text-muted py-3">No data</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Most Borrowed Books</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>#</th><th>Book</th><th>Times Borrowed</th></tr></thead>
+          <tbody>
+          {% for book, count in top_books %}
+          <tr><td>{{ loop.index }}</td><td>{{ book.title }}</td><td><strong>{{ count }}</strong></td></tr>
+          {% else %}<tr><td colspan="3" class="text-center text-muted py-3">No data</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% if overdue_books %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header text-danger"><i class="bi bi-clock-history"></i> Overdue Books</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Student</th><th>Book</th><th>Due Date</th><th>Days Overdue</th><th>Fine</th></tr></thead>
+          <tbody>
+          {% for r in overdue_books %}
+          <tr>
+            <td><a href="{{ url_for('student_profile', student_id=r.student.id) }}">{{ r.student.full_name }}</a></td>
+            <td>{{ r.book.title }}</td>
+            <td>{{ r.due_date.strftime('%d %b %Y') }}</td>
+            <td><span class="badge bg-danger">{{ r.days_overdue }} days</span></td>
+            <td class="text-danger fw-semibold">PKR {{ r.fine_amount }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

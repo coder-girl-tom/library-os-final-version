@@ -1,0 +1,16 @@
+Flask>=2.0
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-Bcrypt
+PyJWT
+psycopg2-binary
+redis
+Flask-Caching
+python-dotenv
+# redis/flask-limiter optional, keep for compatibility
+flask-limiter
+cryptography
+Faker
+tqdm
+APScheduler
+requests

@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}Manage Users{% endblock %}{% block page_title %}Manage Users{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-end mb-3">
+  <a href="{{ url_for('add_user') }}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus"></i> Add User</a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Created</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for u in users %}
+      <tr>
+        <td><strong>{{ u.username }}</strong></td>
+        <td>{{ u.full_name or '—' }}</td>
+        <td><span class="badge {% if u.role=='ADMIN' %}bg-danger{% else %}bg-primary{% endif %}">{{ u.role }}</span></td>
+        <td>{{ u.created_at.strftime('%d %b %Y') }}</td>
+        <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

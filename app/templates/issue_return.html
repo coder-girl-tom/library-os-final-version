@@ -1,0 +1,137 @@
+{% extends "base.html" %}{% block title %}Issue & Return{% endblock %}{% block page_title %}Issue & Return Books{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Issue a Book</div>
+      <div class="card-body p-4">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Student</label>
+          <div class="live-search-box">
+            <input type="text" class="form-control" id="studentSearch" placeholder="Type name or roll number..." autocomplete="off">
+            <div class="live-search-results" id="studentResults"></div>
+          </div>
+          <input type="hidden" id="selectedStudentId">
+          <div id="selectedStudentInfo" class="mt-2 p-2 rounded-3 d-none" style="background:var(--bg);border:1px solid var(--border);font-size:0.85rem"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Book</label>
+          <div class="live-search-box">
+            <input type="text" class="form-control" id="bookSearch" placeholder="Type book title or author..." autocomplete="off">
+            <div class="live-search-results" id="bookResults"></div>
+          </div>
+          <input type="hidden" id="selectedBookId">
+          <div id="selectedBookInfo" class="mt-2 p-2 rounded-3 d-none" style="background:var(--bg);border:1px solid var(--border);font-size:0.85rem"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Loan Duration (days)</label>
+          <input type="number" class="form-control" id="loanDays" value="10" min="1" max="60">
+        </div>
+        <button class="btn btn-primary w-100" onclick="issueBook()"><i class="bi bi-arrow-right-circle"></i> Issue Book</button>
+        <div id="issueMsg" class="mt-2"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Return a Book</div>
+      <div class="card-body p-4">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Search Active Issues</label>
+          <input type="text" class="form-control" id="returnSearch" placeholder="Student name or book title...">
+        </div>
+        <div class="table-responsive" style="max-height:340px;overflow-y:auto">
+          <table class="table table-sm mb-0" id="returnTable">
+            <thead><tr><th>Student</th><th>Book</th><th>Due</th><th></th></tr></thead>
+            <tbody id="returnBody">
+            {% for r in issued %}
+            <tr data-student="{{ r.student.full_name|lower }}" data-book="{{ r.book.title|lower }}">
+              <td>{{ r.student.full_name }}</td>
+              <td>{{ r.book.title }}</td>
+              <td>—</td>
+              <td><button class="btn btn-sm btn-outline-success" onclick="returnBook({{ r.id }}, this)">Return</button></td>
+            </tr>
+            {% else %}<tr><td colspan="4" class="text-center text-muted py-3">No active issues</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div id="returnMsg" class="mt-2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const students = {{ students | tojson }};
+const books = {{ books | tojson }};
+
+function liveSearch(inputId, resultsId, data, keyField, labelFn, onSelect) {
+  const inp = document.getElementById(inputId);
+  const res = document.getElementById(resultsId);
+  inp.addEventListener('input', () => {
+    const q = inp.value.toLowerCase();
+    if (q.length < 1) { res.classList.remove('show'); return; }
+    const matches = data.filter(d => labelFn(d).toLowerCase().includes(q)).slice(0,6);
+    res.innerHTML = matches.map(d => `<div class="search-result-item" onclick='selectItem(${JSON.stringify(d)}, "${inputId}", "${resultsId}")'>${labelFn(d)}</div>`).join('') || '<div class="search-result-item text-muted">No results</div>';
+    res.classList.add('show');
+    window[`_onSelect_${inputId}`] = onSelect;
+  });
+  document.addEventListener('click', e => { if (!inp.contains(e.target)) res.classList.remove('show'); });
+}
+
+function selectItem(d, inputId, resultsId) {
+  const fn = window[`_onSelect_${inputId}`];
+  if (fn) fn(d);
+  document.getElementById(resultsId).classList.remove('show');
+}
+
+liveSearch('studentSearch','studentResults', students, s=>`${s.name} (${s.student_id})`, s=>{
+  document.getElementById('studentSearch').value = `${s.name} (${s.student_id})`;
+  document.getElementById('selectedStudentId').value = s.id;
+  const info = document.getElementById('selectedStudentInfo');
+  info.innerHTML = `<i class="bi bi-person-check text-success"></i> <strong>${s.name}</strong> — ID: ${s.student_id}`;
+  info.classList.remove('d-none');
+});
+
+liveSearch('bookSearch','bookResults', books, b=>`${b.title}`, b=>{
+  document.getElementById('bookSearch').value = b.title;
+  document.getElementById('selectedBookId').value = b.id;
+  const badge = b.low_stock ? ' <span class="badge-low-stock">Low Stock</span>' : '';
+  const info = document.getElementById('selectedBookInfo');
+  info.innerHTML = `<i class="bi bi-book text-primary"></i> <strong>${b.title}</strong> — ${b.available_copies} copies available${badge}`;
+  info.classList.remove('d-none');
+});
+
+async function issueBook() {
+  const sid = document.getElementById('selectedStudentId').value;
+  const bid = document.getElementById('selectedBookId').value;
+  const days = document.getElementById('loanDays').value;
+  const msg = document.getElementById('issueMsg');
+  if (!sid || !bid) { msg.innerHTML='<div class="alert alert-warning py-2">Select a student and a book first.</div>'; return; }
+  const res = await fetch('/api/issue-book', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_id:sid,book_id:bid,days})});
+  const d = await res.json();
+  if (d.success) {
+  let extra = d.low_stock_warning ? ' Book is now low on stock.' : '';
+  msg.innerHTML=`<div class="alert alert-success py-2">${d.message}${extra}</div>`;
+    setTimeout(()=>location.reload(),1200);
+  } else { msg.innerHTML=`<div class="alert alert-danger py-2">${d.error}</div>`; }
+}
+
+async function returnBook(id, btn) {
+  const condition = prompt('Enter condition: good, minor, major, lost', 'good') || 'good';
+  const res = await fetch('/api/return-book', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({issued_id:id, condition})});
+  const d = await res.json();
+  const msg = document.getElementById('returnMsg');
+  if (d.success) { msg.innerHTML=`<div class="alert alert-success py-2">${d.message}</div>`; btn.closest('tr').remove(); }
+  else { msg.innerHTML=`<div class="alert alert-danger py-2">${d.error}</div>`; }
+}
+
+document.getElementById('returnSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#returnBody tr').forEach(r => {
+    r.style.display = (!q || r.dataset.student?.includes(q) || r.dataset.book?.includes(q)) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}

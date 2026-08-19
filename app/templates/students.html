@@ -1,0 +1,59 @@
+{% extends "base.html" %}{% block title %}Students{% endblock %}{% block page_title %}Students{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <form method="GET" class="d-flex gap-2 flex-wrap">
+    <div class="live-search-box">
+      <input type="text" name="search" class="form-control form-control-sm" placeholder="Name, roll no..." value="{{ search }}" id="stuSearch" autocomplete="off" style="width:220px">
+      <div class="live-search-results" id="stuSearchResults"></div>
+    </div>
+    <select name="class" class="form-select form-select-sm" style="width:130px">
+      <option value="">All Classes</option>
+      {% for c in classes %}<option value="{{ c[0] }}" {% if c[0]==class_filter %}selected{% endif %}>{{ c[0] }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+    {% if search or class_filter %}<a href="{{ url_for('students_list') }}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+  </form>
+  <a href="{{ url_for('add_student') }}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus"></i> Add Student</a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Student ID</th><th>Name</th><th>Class</th><th>Borrowed</th><th>Fine</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for s in students.items %}
+      <tr>
+        <td>{{ s.student_id }}</td>
+        <td><a href="{{ url_for('student_profile', student_id=s.id) }}">{{ s.full_name }}</a></td>
+        <td>{{ s.class_name or '—' }} {% if s.section %}{{ s.section }}{% endif %}</td>
+        <td>{{ s.books_borrowed }}</td>
+        <td>{% if s.fine_balance > 0 %}<span class="text-danger fw-semibold">PKR {{ s.fine_balance|int }}</span>{% else %}<span class="text-success">—</span>{% endif %}</td>
+        <td>
+          <a href="{{ url_for('student_profile', student_id=s.id) }}" class="btn btn-sm btn-outline-info"><i class="bi bi-person"></i></a>
+          <a href="{{ url_for('edit_student', student_id=s.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+          {% if session.role=='ADMIN' %}
+          <form method="POST" action="{{ url_for('delete_student', student_id=s.id) }}" class="d-inline" onsubmit="return confirm('Delete student?')">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>{% endif %}
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="6" class="text-center text-muted py-4">No students found.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if students.pages > 1 %}
+  <div class="card-footer d-flex justify-content-center">
+    <nav><ul class="pagination pagination-sm mb-0">
+      {% for p in students.iter_pages() %}
+        {% if p %}<li class="page-item {% if p==students.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&search={{ search }}&class={{ class_filter }}">{{ p }}</a></li>
+        {% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+      {% endfor %}
+    </ul></nav>
+  </div>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const ss=document.getElementById('stuSearch'),sr=document.getElementById('stuSearchResults');let t;
+if(ss){ss.addEventListener('input',()=>{clearTimeout(t);const q=ss.value.trim();if(q.length<2){sr.classList.remove('show');return;}t=setTimeout(async()=>{const res=await fetch(`/api/search?q=${encodeURIComponent(q)}&kind=students`);const d=await res.json();let h='';d.students.forEach(s=>{h+=`<div class="search-result-item" onclick="location.href='/students/${s.id}'"><i class="bi bi-person text-success"></i><div>${s.name}<br><small class="text-muted">${s.student_id} · ${s.class_name}</small></div></div>`;});if(!h)h='<div class="search-result-item text-muted">No students found</div>';sr.innerHTML=h;sr.classList.add('show');},250);});document.addEventListener('click',e=>{if(!ss.contains(e.target))sr.classList.remove('show');});}
+</script>
+{% endblock %}

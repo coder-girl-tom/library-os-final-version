@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48">
+  <defs>
+    <linearGradient id="gd" x1="0" x2="1">
+      <stop offset="0" stop-color="#0f172a" />
+      <stop offset="1" stop-color="#062e1a" />
+    </linearGradient>
+  </defs>
+  <rect rx="8" ry="8" width="200" height="48" fill="#05231a" />
+  <text x="22" y="32" font-family="Segoe UI, system-ui, Arial" font-size="18" font-weight="700" fill="#9be7b4">library os</text>
+  <circle cx="14" cy="24" r="10" fill="#ffffff" opacity="0.04" />
+</svg>

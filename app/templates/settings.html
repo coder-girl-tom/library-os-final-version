@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% block title %}Settings{% endblock %}{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div class="row g-3" style="max-width:700px">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">🔒 Change Password</div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('update_password') }}">
+          <div class="mb-3"><label class="form-label fw-semibold">Current Password</label><input type="password" name="old_password" class="form-control" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">New Password</label><input type="password" name="new_password" class="form-control" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Confirm New Password</label><input type="password" name="confirm_password" class="form-control" required></div>
+          <button type="submit" class="btn btn-primary">Update Password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">🛡️ Recovery Answer</div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('update_recovery') }}">
+          <div class="mb-3"><label class="form-label fw-semibold">Recovery Answer <small class="text-muted">(used if you forget your password)</small></label><input type="text" name="recovery_answer" class="form-control" placeholder="e.g. your pet's name"></div>
+          <button type="submit" class="btn btn-outline-primary">Save Answer</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

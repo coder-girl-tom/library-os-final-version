@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}Edit Book{% endblock %}{% block page_title %}Edit Book{% endblock %}
+{% block content %}
+<div class="card" style="max-width:680px">
+  <div class="card-header">Edit Book</div>
+  <div class="card-body p-4">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-12"><label class="form-label fw-semibold">Title *</label><input type="text" name="title" class="form-control" value="{{ book.title }}" required></div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Author *</label><input type="text" name="author" class="form-control" value="{{ book.author }}" required></div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Accession Number</label><input type="text" name="accession_number" class="form-control" value="{{ book.accession_number or '' }}"></div>
+        <div class="col-md-6"><label class="form-label fw-semibold">ISBN</label><input type="text" name="isbn" class="form-control" value="{{ book.isbn or '' }}"></div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Publisher</label><input type="text" name="publisher" class="form-control" value="{{ book.publisher or '' }}"></div>
+        <div class="col-md-3"><label class="form-label fw-semibold">Publication Year</label><input type="number" name="publication_year" class="form-control" value="{{ book.publication_year or '' }}"></div>
+        <div class="col-md-3"><label class="form-label fw-semibold">Quantity</label><input type="number" name="quantity" class="form-control" value="{{ book.quantity }}" min="1" required></div>
+        <div class="col-md-4"><label class="form-label fw-semibold">Purchase Price</label><input type="number" step="0.01" name="purchase_price" class="form-control" value="{{ book.purchase_price or '' }}"></div>
+        <div class="col-md-5"><label class="form-label fw-semibold">Shelf Location</label><input type="text" name="shelf_location" class="form-control" value="{{ book.shelf_location or '' }}"></div>
+        <div class="col-12"><label class="form-label fw-semibold">Description</label><textarea name="description" class="form-control" rows="3">{{ book.description or '' }}</textarea></div>
+      </div>
+      <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{{ url_for('books_list') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

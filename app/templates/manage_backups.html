@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Backups</h2>
+  <form method="post" action="{{ url_for('create_backup') }}">
+    <button class="btn btn-primary">Create Backup Now</button>
+  </form>
+  <hr/>
+  <table class="table table-striped mt-3">
+    <thead>
+      <tr>
+        <th>Filename</th>
+        <th>Storage</th>
+        <th>Size (bytes)</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in backups %}
+      <tr>
+        <td>{{ b.filename }}</td>
+        <td>{{ b.storage }}</td>
+        <td>{{ b.size }}</td>
+        <td>{{ b.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>
+          <a href="{{ url_for('download_backup', backup_id=b.id) }}" class="btn btn-sm btn-secondary">Download</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5">No backups yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}library os{% endblock %}</title>
+<link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
+<style>
+:root[data-theme="light"] {
+  --bg: #f4f6fb; --sidebar-bg: #1e2a4a; --sidebar-text: #c8d6f0;
+  --sidebar-active: #4f8ef7; --card-bg: #fff; --text: #1a1f36;
+  --muted: #6b7280; --border: #e5e7eb; --input-bg: #fff;
+  --badge-low: #fff3cd; --badge-low-text: #856404;
+}
+:root[data-theme="dark"] {
+  --bg: #0f1117; --sidebar-bg: #0d1526; --sidebar-text: #8da4cc;
+  --sidebar-active: #4f8ef7; --card-bg: #1a1f2e; --text: #e2e8f0;
+  --muted: #94a3b8; --border: #2d3748; --input-bg: #1e2433;
+  --badge-low: #3b2f00; --badge-low-text: #fcd34d;
+}
+.sidebar-brand img.brand-logo { height: 36px; width: 36px; object-fit: contain; background: #fff; border-radius: 8px; padding: 3px; }
+.sidebar-brand img.logo-light { display: inline-block; }
+[data-theme="dark"] .sidebar-brand img.logo-dark { display: inline-block; }
+[data-theme="dark"] .sidebar-brand img.logo-light { display: none; }
+* { transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; }
+.sidebar { width: 240px; min-height: 100vh; background: var(--sidebar-bg); position: fixed; top: 0; left: 0; z-index: 100; display: flex; flex-direction: column; }
+.sidebar-brand { padding: 20px 18px 10px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.sidebar-brand img { height: 36px; }
+.sidebar-brand .brand-text { color: #fff; font-weight: 700; font-size: 1.1rem; }
+.sidebar-brand .brand-sub { color: var(--sidebar-text); font-size: 0.72rem; }
+.sidebar-nav { padding: 14px 0; flex: 1; }
+.nav-section { padding: 6px 18px 2px; font-size: 0.65rem; color: #5a7a9a; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.sidebar-link { display: flex; align-items: center; gap: 10px; padding: 9px 18px; color: var(--sidebar-text); text-decoration: none; font-size: 0.88rem; border-radius: 0; transition: all 0.15s; }
+.sidebar-link:hover { background: rgba(79,142,247,0.12); color: #fff; }
+.sidebar-link.active { background: rgba(79,142,247,0.18); color: var(--sidebar-active); border-left: 3px solid var(--sidebar-active); }
+.sidebar-link i { width: 18px; text-align: center; font-size: 1rem; }
+.main-content { margin-left: 240px; min-height: 100vh; }
+.topbar { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 12px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+.topbar-title { font-weight: 700; font-size: 1.15rem; color: var(--text); }
+.topbar-actions { display: flex; align-items: center; gap: 14px; }
+.dark-toggle { background: none; border: 1px solid var(--border); border-radius: 50px; padding: 5px 14px; cursor: pointer; color: var(--text); font-size: 0.82rem; display: flex; align-items: center; gap: 6px; }
+.dark-toggle:hover { background: var(--bg); }
+.page-body { padding: 24px 28px; }
+.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.card-header { background: none; border-bottom: 1px solid var(--border); padding: 14px 20px; font-weight: 600; font-size: 0.95rem; color: var(--text); }
+.card-body { color: var(--text); }
+.card-title { color: var(--text); }
+h1, h2, h3, h4, h5, h6 { color: var(--text); }
+label, .form-label { color: var(--text); }
+.stat-card { border-radius: 14px; padding: 20px 22px; border: none; position: relative; overflow: hidden; }
+.stat-card .stat-icon { font-size: 2rem; opacity: 0.85; }
+.stat-card .stat-val { font-size: 2rem; font-weight: 800; line-height: 1; }
+.stat-card .stat-label { font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
+.form-control, .form-select { background: var(--input-bg); border-color: var(--border); color: var(--text); }
+.form-control:focus, .form-select:focus { background: var(--input-bg); color: var(--text); border-color: var(--sidebar-active); box-shadow: 0 0 0 3px rgba(79,142,247,0.15); }
+.form-control::placeholder { color: var(--muted); opacity: 1; }
+/* Bootstrap 5.3 tables use CSS variables internally; override them so dark mode actually applies */
+.table { --bs-table-color: var(--text); --bs-table-bg: transparent; --bs-table-striped-color: var(--text); --bs-table-striped-bg: rgba(127,127,127,0.06); --bs-table-hover-color: var(--text); --bs-table-hover-bg: rgba(127,127,127,0.08); --bs-table-border-color: var(--border); color: var(--text); background-color: transparent; }
+.table th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; border-color: var(--border); font-weight: 600; }
+.table td { border-color: var(--border); vertical-align: middle; color: var(--text); }
+.table-responsive { color: var(--text); }
+/* Flash message alerts: themed per-variant so dark mode stays readable */
+.alert { --bs-alert-color: var(--text); --bs-alert-bg: var(--card-bg); --bs-alert-border-color: var(--border); }
+.alert-success { --bs-alert-color: #0a5c36; --bs-alert-bg: #d1f0e3; --bs-alert-border-color: #a3e0c4; }
+.alert-danger { --bs-alert-color: #842029; --bs-alert-bg: #f8d7da; --bs-alert-border-color: #f1aeb5; }
+.alert-warning { --bs-alert-color: #664d03; --bs-alert-bg: #fff3cd; --bs-alert-border-color: #ffe69c; }
+.alert-info { --bs-alert-color: #055160; --bs-alert-bg: #cff4fc; --bs-alert-border-color: #9eeaf9; }
+[data-theme="dark"] .alert-success { --bs-alert-color: #9be7b4; --bs-alert-bg: #0f2e21; --bs-alert-border-color: #1a4a35; }
+[data-theme="dark"] .alert-danger { --bs-alert-color: #f5b8bd; --bs-alert-bg: #3a1418; --bs-alert-border-color: #5c2128; }
+[data-theme="dark"] .alert-warning { --bs-alert-color: #fcd34d; --bs-alert-bg: #3b2f00; --bs-alert-border-color: #5c4900; }
+[data-theme="dark"] .alert-info { --bs-alert-color: #9eeaf9; --bs-alert-bg: #062a31; --bs-alert-border-color: #0a4350; }
+.btn-close { filter: var(--btn-close-filter, none); }
+[data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(1.8); }
+.dropdown-menu { background: var(--card-bg); border-color: var(--border); color: var(--text); }
+.dropdown-item { color: var(--text); }
+.dropdown-item:hover, .dropdown-item:focus { background: var(--bg); color: var(--text); }
+.modal-content { background: var(--card-bg); color: var(--text); }
+.text-muted { color: var(--muted) !important; }
+.text-dark { color: var(--text) !important; }
+small { color: inherit; }
+.badge-low-stock { background: var(--badge-low); color: var(--badge-low-text); font-size: 0.72rem; padding: 3px 8px; border-radius: 50px; font-weight: 600; }
+.badge-out-of-stock { background: #fee2e2; color: #991b1b; font-size: 0.72rem; padding: 3px 8px; border-radius: 50px; font-weight: 600; }
+.live-search-box { position: relative; }
+.live-search-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; z-index: 999; box-shadow: 0 8px 30px rgba(0,0,0,0.12); max-height: 360px; overflow-y: auto; display: none; }
+.live-search-results.show { display: block; }
+.search-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: var(--bg); }
+.search-section-header { padding: 6px 14px 2px; font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.alert-low-stock { background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 1px solid #f59e0b; border-radius: 10px; color: #92400e; }
+[data-theme="dark"] .alert-low-stock { background: linear-gradient(135deg, #2d1f00, #3b2800); border-color: #b45309; color: #fcd34d; }
+.btn-primary { background: #4f8ef7; border-color: #4f8ef7; }
+.btn-primary:hover { background: #3b7de8; border-color: #3b7de8; }
+</style>
+</head>
+<body>
+<div id="bg-overlay" aria-hidden="true"></div>
+{% if session.user_id %}
+<div class="sidebar">
+  <div class="sidebar-brand d-flex align-items-center gap-2">
+    {% if has_logo %}
+    <img src="{{ url_for('static', filename='uswa-logo.png') }}" alt="library os" class="brand-logo" height="36">
+    {% else %}
+    <img src="{{ url_for('static', filename='logo-light.svg') }}" alt="library os" class="logo-light" height="36">
+    <img src="{{ url_for('static', filename='logo-dark.svg') }}" alt="library os" class="logo-dark" height="36">
+    {% endif %}
+    <div><div class="brand-text">library os</div><div class="brand-sub">Management System</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a href="{{ url_for('dashboard') }}" class="sidebar-link {% if request.endpoint=='dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="{{ url_for('books_list') }}" class="sidebar-link {% if 'book' in (request.endpoint or '') %}active{% endif %}"><i class="bi bi-book"></i> Books</a>
+    <a href="{{ url_for('students_list') }}" class="sidebar-link {% if 'student' in (request.endpoint or '') %}active{% endif %}"><i class="bi bi-people"></i> Students</a>
+    <a href="{{ url_for('issue_return') }}" class="sidebar-link {% if request.endpoint=='issue_return' %}active{% endif %}"><i class="bi bi-arrow-left-right"></i> Issue / Return</a>
+    <a href="{{ url_for('issued_books') }}" class="sidebar-link {% if request.endpoint=='issued_books' %}active{% endif %}"><i class="bi bi-journal-check"></i> Issued Books</a>
+    <div class="nav-section mt-2">Reports</div>
+    <a href="{{ url_for('reports') }}" class="sidebar-link {% if request.endpoint=='reports' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Reports</a>
+    <a href="{{ url_for('leaderboard') }}" class="sidebar-link {% if request.endpoint=='leaderboard' %}active{% endif %}"><i class="bi bi-trophy"></i> Leaderboard</a>
+    <div class="nav-section mt-2">Account</div>
+    <a href="{{ url_for('settings') }}" class="sidebar-link {% if request.endpoint=='settings' %}active{% endif %}"><i class="bi bi-gear"></i> Settings</a>
+    {% if session.role == 'ADMIN' %}<a href="{{ url_for('manage_users') }}" class="sidebar-link {% if 'user' in (request.endpoint or '') %}active{% endif %}"><i class="bi bi-shield-check"></i> Users</a>{% endif %}
+    {% if session.role == 'ADMIN' %}<a href="{{ url_for('list_backups') }}" class="sidebar-link {% if 'backups' in (request.endpoint or '') %}active{% endif %}"><i class="bi bi-save"></i> Backups</a>{% endif %}
+    <a href="{{ url_for('logout') }}" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+  </nav>
+</div>
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <div class="topbar-actions">
+      <!-- Global Live Search -->
+      <div class="live-search-box" style="width:280px">
+        <input type="text" class="form-control form-control-sm" id="globalSearch" placeholder="Search books or students..." autocomplete="off">
+        <div class="live-search-results" id="globalSearchResults"></div>
+      </div>
+      <button class="dark-toggle" id="darkToggle"><i class="bi bi-moon-stars"></i> <span id="darkLabel">Dark</span></button>
+      <span class="text-muted small"><i class="bi bi-person-circle"></i> {{ session.username }}</span>
+    </div>
+  </div>
+  <div class="page-body">
+    <div class="page-hero">
+      <div>
+        <div class="hero-title">{{ self.page_title() }}</div>
+        <div class="hero-sub">{% block page_subtitle %}{% endblock %}</div>
+      </div>
+      <div class="flex-gap">{% block page_actions %}{% endblock %}</div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}<div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script>
+// Dark mode
+const html = document.documentElement;
+const savedTheme = localStorage.getItem('theme') || 'light';
+html.setAttribute('data-theme', savedTheme);
+const darkToggle = document.getElementById('darkToggle');
+const darkLabel = document.getElementById('darkLabel');
+if (darkToggle) {
+  function updateToggle() {
+    const t = html.getAttribute('data-theme');
+    if (darkLabel) darkLabel.textContent = t === 'dark' ? 'Light' : 'Dark';
+    if (darkToggle) darkToggle.querySelector('i').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+  }
+  updateToggle();
+  darkToggle.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    updateToggle();
+  });
+}
+
+// Global live search
+const globalSearch = document.getElementById('globalSearch');
+const globalResults = document.getElementById('globalSearchResults');
+let searchTimer;
+if (globalSearch) {
+  globalSearch.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const q = globalSearch.value.trim();
+    if (q.length < 2) { globalResults.classList.remove('show'); return; }
+    searchTimer = setTimeout(async () => {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&kind=all`);
+      const data = await res.json();
+      let html = '';
+      if (data.books.length) {
+        html += '<div class="search-section-header">Books</div>';
+        data.books.forEach(b => {
+          const badge = b.out_of_stock ? '<span class="badge-out-of-stock ms-1">Out of stock</span>' :
+                        b.low_stock ? '<span class="badge-low-stock ms-1">Low stock</span>' : '';
+          html += `<div class="search-result-item" onclick="location.href='/books?search=${encodeURIComponent(b.title)}'">
+            <i class="bi bi-book text-primary"></i>
+            <div><div>${b.title} ${badge}</div><small class="text-muted">${b.author} · ${b.available} available</small></div></div>`;
+        });
+      }
+      if (data.students.length) {
+        html += '<div class="search-section-header">Students</div>';
+        data.students.forEach(s => {
+          html += `<div class="search-result-item" onclick="location.href='/students/${s.id}'">
+            <i class="bi bi-person text-success"></i>
+            <div><div>${s.name}</div><small class="text-muted">${s.student_id} · ${s.class_name}</small></div></div>`;
+        });
+      }
+      if (!data.books.length && !data.students.length) {
+        html = '<div class="search-result-item text-muted">No results found</div>';
+      }
+      globalResults.innerHTML = html;
+      globalResults.classList.add('show');
+    }, 250);
+  });
+  document.addEventListener('click', e => { if (!globalSearch.contains(e.target) && !globalResults.contains(e.target)) globalResults.classList.remove('show'); });
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

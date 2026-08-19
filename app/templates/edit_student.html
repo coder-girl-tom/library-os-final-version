@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}Edit Student{% endblock %}{% block page_title %}Edit Student{% endblock %}
+{% block content %}
+  <div class="card" style="max-width:680px">
+  <div class="card-header">Edit Student — {{ student.full_name }}</div>
+  <div class="card-body p-4">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label fw-semibold">Full Name *</label><input type="text" name="full_name" class="form-control" value="{{ student.full_name }}" required></div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Student ID</label><input type="text" class="form-control" value="{{ student.student_id }}" disabled></div>
+        <div class="col-md-4"><label class="form-label fw-semibold">Class</label><input type="text" name="class_name" class="form-control" value="{{ student.class_name or '' }}"></div>
+        <div class="col-md-2"><label class="form-label fw-semibold">Section</label><input type="text" name="section" class="form-control" value="{{ student.section or '' }}"></div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Email</label><input type="email" name="email" class="form-control" value="{{ student.email or '' }}"></div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Phone</label><input type="text" name="phone" class="form-control" value="{{ student.phone or '' }}"></div>
+        <div class="col-12"><label class="form-label fw-semibold">Address</label><textarea name="address" class="form-control" rows="2">{{ student.address or '' }}</textarea></div>
+      </div>
+      <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{{ url_for('student_profile', student_id=student.id) }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}Leaderboard{% endblock %}{% block page_title %}Leaderboard{% endblock %}
+{% block content %}
+  <div class="card">
+  <div class="card-header">Top Readers Leaderboard</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>Books Read</th></tr></thead>
+      <tbody>
+      {% for student, count in borrowers %}
+      <tr>
+        <td>
+          <span class="text-muted fw-semibold">#{{ loop.index }}</span>
+        </td>
+        <td><a href="{{ url_for('student_profile', student_id=student.id) }}">{{ student.full_name }}</a></td>
+        <td>{{ student.class_name or '—' }}</td>
+        <td><strong>{{ count }}</strong></td>
+      </tr>
+      {% else %}<tr><td colspan="4" class="text-center text-muted py-4">No data yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
